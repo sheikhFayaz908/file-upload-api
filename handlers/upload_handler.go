@@ -17,7 +17,6 @@ func init() {
 	uploadManager.ProcessUploads()
 }
 
-// UploadFile handles the upload endpoint
 func UploadFile(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {

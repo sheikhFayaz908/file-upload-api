@@ -66,11 +66,23 @@ func (um *UploadManager) processUpload(job *UploadJob) {
 		database.UpdateJob(&models.Uploads{ID: job.ID, Status: models.UploadStatusError})
 		return
 	}
-	dataBatch := []*models.UploadedData{}
-	for _, columnValue := range data {
+	batchSize := 100
+	dataBatch := make([]*models.UploadedData, 0, batchSize)
+
+	for idx, columnValue := range data {
 		dataBatch = append(dataBatch, &models.UploadedData{ColumnValue: columnValue, UploadsId: job.ID})
+
+		if len(dataBatch) == batchSize || idx == len(data)-1 {
+			err := database.SaveUploadedData(dataBatch)
+			if err != nil {
+				log.Printf("Error saving batch: %v", err)
+				database.UpdateJob(&models.Uploads{ID: job.ID, Status: models.UploadStatusError})
+				return
+			}
+			// Clear the batch for the next iteration
+			dataBatch = make([]*models.UploadedData, 0, batchSize)
+		}
 	}
-	database.SaveUploadedData(dataBatch)
-	//update status of Job to Completed
+
 	database.UpdateJob(&models.Uploads{ID: job.ID, Status: models.UploadStatusCompleted})
 }
