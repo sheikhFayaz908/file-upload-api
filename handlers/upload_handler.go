@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"file-upload-api/uploadmanager"
+	uploadmanager "file-upload-api/upload_manager"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,6 +28,11 @@ func UploadFile(c *gin.Context) {
 	ext := filepath.Ext(file.Filename)
 	if ext != ".csv" {
 		c.AbortWithStatusJSON(400, gin.H{"error": "Only CSV files are allowed"})
+		return
+	}
+	//file extensions can be manipulated.
+	if file.Header.Get("Content-Type") != "text/csv" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Only CSV files are allowed"})
 		return
 	}
 

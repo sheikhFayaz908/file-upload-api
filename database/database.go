@@ -10,6 +10,8 @@ import (
 
 var DB *gorm.DB
 
+const BatchSize = 100
+
 func InitDB() *gorm.DB {
 	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
@@ -36,11 +38,24 @@ func UpdateJob(job *models.Uploads) error {
 }
 
 func SaveUploadedData(data []*models.UploadedData) error {
-	err := DB.Create(data).Error
-	if err != nil {
-		log.Print("DB error", err)
+	db := DB.Begin()
+
+	for i := 0; i < len(data); i += BatchSize {
+		end := i + BatchSize
+		if end > len(data) {
+			end = len(data)
+		}
+
+		batch := data[i:end]
+		if err := db.Create(batch).Error; err != nil {
+			db.Rollback()
+			log.Printf("Error inserting batch: %v", err)
+			return err
+		}
 	}
-	return err
+
+	db.Commit()
+	return nil
 }
 
 func FetchUploadedDataById(id string) (*models.Uploads, error) {

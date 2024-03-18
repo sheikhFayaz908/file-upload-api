@@ -2,7 +2,7 @@ package uploadmanager
 
 import (
 	"file-upload-api/database"
-	"file-upload-api/fileprocessor"
+	fileprocessor "file-upload-api/file_processor"
 	"file-upload-api/models"
 	"log"
 	"mime/multipart"
