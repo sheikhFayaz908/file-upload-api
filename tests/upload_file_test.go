@@ -31,14 +31,14 @@ func TestUploadHandler(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	//records with varying fields and quoting
+	//records with varying fields and quoting and multiline fields
 	part.Write([]byte(`Name,Description,Price
 	"Product 1","This is a multi-line description that spans across
 	multiple lines. It includes details about the features
 	and benefits of the product.","$99.99"
 	"Product 2","Another product with a detailed description
 	that is split across lines due to its length.","$149.99"
-	"Product 3","A short description.","$49.99"`))
+	"Product 3","A short description."`))
 
 	writer.Close()
 

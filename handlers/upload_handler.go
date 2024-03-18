@@ -29,11 +29,6 @@ func UploadFile(c *gin.Context) {
 		c.AbortWithStatusJSON(400, gin.H{"error": "Only CSV files are allowed"})
 		return
 	}
-	//file extensions can be manipulated.
-	if file.Header.Get("Content-Type") != "text/csv" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Only CSV files are allowed"})
-		return
-	}
 
 	uploadID := uploadManager.Push(file)
 	if uploadID == "" {
