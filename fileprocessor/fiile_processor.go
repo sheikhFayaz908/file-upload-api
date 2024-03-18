@@ -21,20 +21,7 @@ func (cp *CSVProcessor) ProcessFile(file *multipart.FileHeader) ([]string, error
 	defer uploadedFile.Close()
 
 	reader := csv.NewReader(uploadedFile)
-	finalColumnIndex := -1
-
-	// Read the CSV headers
-	headers, err := reader.Read()
-	if err != nil {
-		return nil, err
-	}
-
-	// Find the index of the final column
-	if len(headers) > 0 {
-		finalColumnIndex = len(headers) - 1
-	}
-
-	recordList := []string{headers[finalColumnIndex]}
+	recordList := make([]string, 0)
 
 	for {
 		row, err := reader.Read()
@@ -45,21 +32,16 @@ func (cp *CSVProcessor) ProcessFile(file *multipart.FileHeader) ([]string, error
 			return nil, err
 		}
 
-		finalColumnValue := ""
-		if finalColumnIndex >= 0 && finalColumnIndex < len(row) {
-			finalColumnValue = row[finalColumnIndex]
+		// Handle varying numbers of columns in rows
+		if len(row) > 0 {
+			finalColumnValue := row[len(row)-1]
+			recordList = append(recordList, finalColumnValue)
 		}
-
-		recordList = append(recordList, finalColumnValue)
-
 	}
 
-	return recordList, err
+	return recordList, nil
 }
 
-/*
-Get file processor depending on filetype
-*/
 func GetFileProcessor(fileType string) (FileProcessor, error) {
 	switch fileType {
 	case "csv":
