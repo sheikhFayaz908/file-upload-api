@@ -19,16 +19,8 @@ func main() {
 	// Set maximum request body size
 	r.MaxMultipartMemory = 32 << 20
 
-	// Configure CORS middleware
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"}, // Allow all origins
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
-		AllowCredentials: true,
-		MaxAge:           12 * 60 * 60,
-	}))
-
 	database.InitDB()
+	setUpMiddlewares(r)
 	v1 := r.Group("/api")
 	{
 		v1.POST("/upload", handlers.UploadFile)
@@ -50,6 +42,24 @@ func main() {
 	}()
 
 	shutDown(server)
+}
+
+func setUpMiddlewares(engine *gin.Engine) {
+	// Configure CORS middleware
+	engine.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"}, // Allow all origins
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+		MaxAge:           12 * 60 * 60,
+	}))
+
+	// Middleware to log requests
+	engine.Use(func(c *gin.Context) {
+		log.Printf("Request: %s %s", c.Request.Method, c.Request.URL.Path)
+		c.Next()
+	})
+
 }
 
 func shutDown(server *http.Server) {
