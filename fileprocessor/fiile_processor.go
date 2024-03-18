@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"mime/multipart"
+	"strings"
 )
 
 type FileProcessor interface {
@@ -21,6 +22,9 @@ func (cp *CSVProcessor) ProcessFile(file *multipart.FileHeader) ([]string, error
 	defer uploadedFile.Close()
 
 	reader := csv.NewReader(uploadedFile)
+	// Handle quoted fields with lazy quotes
+	reader.LazyQuotes = true
+
 	recordList := make([]string, 0)
 
 	for {
@@ -28,15 +32,31 @@ func (cp *CSVProcessor) ProcessFile(file *multipart.FileHeader) ([]string, error
 		if err == io.EOF {
 			break
 		}
-		if err != nil {
-			return nil, err
+
+		var finalColumnValue string
+		if len(row) > 0 {
+			finalColumnValue = row[len(row)-1]
 		}
 
-		// Handle varying numbers of columns in rows
-		if len(row) > 0 {
-			finalColumnValue := row[len(row)-1]
-			recordList = append(recordList, finalColumnValue)
+		// Handle cells that are quoted and split across lines
+		if strings.HasPrefix(finalColumnValue, `"`) && !strings.HasSuffix(finalColumnValue, `"`) {
+			for {
+				nextRow, err := reader.Read()
+				if err != nil {
+					if err == io.EOF {
+						return nil, errors.New("unterminated quoted cell across lines")
+					}
+					return nil, err
+				}
+
+				finalColumnValue += "\n" + nextRow[len(nextRow)-1]
+				if strings.HasSuffix(nextRow[len(nextRow)-1], `"`) {
+					break
+				}
+			}
 		}
+
+		recordList = append(recordList, finalColumnValue)
 	}
 
 	return recordList, nil

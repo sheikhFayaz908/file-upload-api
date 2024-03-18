@@ -31,11 +31,14 @@ func TestUploadHandler(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	part.Write([]byte(`Name,Age,Email,Country
-John Doe,30,johndoe@example.com,NewsLand
-Jane Smith,25,janesmith@example.com,Iceland 
-Michael Johnson,40,michaeljohnson@example.com,Greenland
-Emily Davis,35,emilydavis@example.com,Poland`))
+	//records with varying fields and quoting
+	part.Write([]byte(`Name,Description,Price
+	"Product 1","This is a multi-line description that spans across
+	multiple lines. It includes details about the features
+	and benefits of the product.","$99.99"
+	"Product 2","Another product with a detailed description
+	that is split across lines due to its length.","$149.99"
+	"Product 3","A short description.","$49.99"`))
 
 	writer.Close()
 

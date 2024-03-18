@@ -29,6 +29,7 @@ func DownloadHandler(c *gin.Context) {
 	switch uploadData.Status {
 	case models.UploadStatusStarted:
 		c.JSON(http.StatusConflict, gin.H{"error": "Upload is still processing"})
+
 	case models.UploadStatusCompleted:
 		c.Header("Content-Disposition", "attachment; filename=data.csv")
 		c.Header("Content-Type", "text/csv")
@@ -47,6 +48,8 @@ func DownloadHandler(c *gin.Context) {
 			c.Writer.WriteString(chunk.String())
 			c.Writer.Flush()
 		}
+	case models.UploadStatusError:
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error Processing the file"})
 	default:
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unknown status"})
 	}

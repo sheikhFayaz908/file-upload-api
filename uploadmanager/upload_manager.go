@@ -63,7 +63,7 @@ func (um *UploadManager) processUpload(job *UploadJob) {
 
 	data, err := processor.ProcessFile(job.File)
 	if err != nil {
-		database.SaveJob(&models.Uploads{ID: job.ID, Status: models.UploadStatusError})
+		database.UpdateJob(&models.Uploads{ID: job.ID, Status: models.UploadStatusError})
 		return
 	}
 	dataBatch := []*models.UploadedData{}

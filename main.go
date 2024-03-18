@@ -53,16 +53,14 @@ func main() {
 }
 
 func shutDown(server *http.Server) {
-	// Listen for OS signals to gracefully shutdown the server
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 
-	// Create a context with a timeout to allow in-flight requests to complete
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Shutdown the server gracefully
 	if err := server.Shutdown(ctx); err != nil {
 		log.Fatalf("Error shutting down server: %v", err)
 	}
